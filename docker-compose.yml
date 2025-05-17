@@ -1,0 +1,41 @@
+version: '3.8'
+
+services:
+  # Serviço A - responsável pelo input
+  service-a:
+    build:
+      context: ./service-a
+      dockerfile: Dockerfile
+    container_name: service-a
+    ports:
+      - "8081:8081"
+    depends_on:
+      - service-b
+      - zipkin
+    environment:
+      - PORT=8081
+      - SERVICE_B_URL=http://service-b:8082
+      - ZIPKIN_URL=http://zipkin:9411/api/v2/spans
+
+  # Serviço B - responsável pela orquestração
+  service-b:
+    build:
+      context: ./service-b
+      dockerfile: Dockerfile
+    container_name: service-b
+    ports:
+      - "8082:8082"
+    depends_on:
+      - zipkin
+    environment:
+      - PORT=8082
+      - WEATHER_API_KEY=${WEATHER_API_KEY}
+      - TEST_MODE=${TEST_MODE:-false}
+      - ZIPKIN_URL=http://zipkin:9411/api/v2/spans
+
+  # Zipkin - coletor de telemetria
+  zipkin:
+    image: openzipkin/zipkin:latest
+    container_name: zipkin
+    ports:
+      - "9411:9411" 

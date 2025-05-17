@@ -1,0 +1,37 @@
+services:
+  # Serviço principal da API
+  app:
+    build: .
+    container_name: cep-weather-api
+    ports:
+      - "8080:8080"
+    environment:
+      - WEATHER_API_KEY=${WEATHER_API_KEY}
+      - TEST_MODE=true
+
+  # Serviço apenas para o ViaCEP
+  viacep:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "8081:8080"
+    environment:
+      - PORT=8080
+    command: ["go", "run", "main.go", "viacep"]
+    volumes:
+      - .:/app
+
+  # Serviço apenas para o Weather API
+  weather:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "8082:8080"
+    environment:
+      - PORT=8080
+      - WEATHER_API_KEY=${WEATHER_API_KEY}
+    command: ["go", "run", "main.go", "weather"]
+    volumes:
+      - .:/app 
